@@ -1,0 +1,54 @@
+.buttons-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+
+.p-datatable-table {
+    border-collapse: collapse;
+}
+
+.p-datatable-thead > tr > th,
+.p-datatable-tbody > tr > td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.p-datatable-thead > tr > th {
+    background-color: #a341a1;
+    color: white;
+}
+
+.p-sorticon {
+    color: white !important;
+}
+
+.p-sortable-column.p-highlight .p-sorticon {
+    color: #ffb6c1 !important;
+}
+
+.hit-yes {
+    color: #00805a;
+}
+
+.hit-no {
+    color: #ff0059;
+}
+
+.custom-datatable .p-datatable-tbody {
+    background: transparent !important;
+}
+
+.custom-datatable .p-datatable-tbody > tr > td {
+    background: transparent !important;
+    border: 1px solid #ddd;
+}
+
+.custom-datatable .p-datatable-thead > tr > th .p-column-header-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

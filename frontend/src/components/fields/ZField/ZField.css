@@ -1,0 +1,85 @@
+.form-block .z-button-group {
+    width: 100%;
+}
+
+.form-block .z-button-group table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+}
+
+.form-block .z-button-group tr {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.form-block .z-button-group td {
+    flex: 1 0 auto;
+    max-width: 80px;
+    padding: 8px 0;
+    text-align: left;
+    vertical-align: middle;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: auto;
+}
+
+.form-block .z-button-group .p-checkbox {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+}
+
+.form-block .z-button-group .p-checkbox-box {
+    position: relative;
+    width: 25px;
+    height: 25px;
+    border: 2px solid #a7a7a7;
+    background: #fff;
+    border-radius: 7px;
+    transition: all 0.22s ease;
+    flex-shrink: 0;
+}
+
+.form-block .z-button-group .p-checkbox:hover .p-checkbox-box {
+    border-color: #a341a1;
+    box-shadow: 0 0 0 3px rgba(163, 65, 161, 0.4);
+}
+
+.form-block .z-button-group .p-checkbox-icon {
+    position: absolute;
+    font-size: 14px;
+    width: 15px;
+    height: 15px;
+    color: white;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.form-block .z-button-group .p-highlight .p-checkbox-icon {
+    opacity: 1;
+    visibility: visible;
+    display: block;
+}
+
+.form-block .z-button-group label {
+    display: inline-block;
+    margin: 0 0 0 11px;
+    font-size: 16px;
+    line-height: 1;
+    color: #2d4057;
+    font-weight: 500;
+}
+
+.form-block .z-button-group .p-highlight .p-checkbox-box {
+    background: #a341a1;
+    border-color: #a341a1;
+}
+
+.hidden-input {
+    display: none;
+}

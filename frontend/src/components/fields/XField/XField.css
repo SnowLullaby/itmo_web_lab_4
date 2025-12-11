@@ -1,0 +1,104 @@
+.form-block .x-spinner.p-inputnumber {
+    height: 48px;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    border: 2px solid #ccc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.form-block .x-spinner.p-inputnumber:focus-within {
+    border-color: #a341a1;
+    box-shadow: 0 0 6px rgba(163, 65, 161, 0.4);
+}
+
+.form-block .x-spinner .p-inputnumber-input {
+    height: 100%;
+    padding: 0 12px !important;
+    border: none;
+    background: #fff;
+    color: #2d4057;
+    font-size: 16px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border-radius: 6px 0 0 6px;
+    line-height: normal;
+    box-sizing: border-box;
+}
+
+.form-block .x-spinner .p-inputnumber-buttons-stacked {
+    width: 5%;
+    min-width: 70px;
+    height: 100%;
+    background: transparent !important;
+    border-radius: 0 6px 6px 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    border-left: 2px solid #a341a1;
+    margin-left: -2px;
+}
+
+.form-block .x-spinner .p-inputnumber-button {
+    flex: 1;
+    min-height: 50%;
+    width: 100%;
+    background: #a341a1;
+    border: none;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 !important;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+    cursor: pointer;
+}
+
+.form-block .x-spinner .p-inputnumber-button:hover {
+    background: #8941a3 !important;
+}
+
+.form-block .x-spinner .p-inputnumber-button:first-child {
+    height: 52%;
+    margin-bottom: 4%;
+}
+
+.form-block .x-spinner .p-inputnumber-button:last-child {
+    height: 52%;
+    margin-top: -6%;
+}
+
+.form-block .x-spinner .p-button-icon {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-block .x-spinner.p-inputnumber .p-inputnumber-button-group {
+    width: 5%;
+    min-width: 40px;
+}
+
+@media (max-width: 812px) {
+    .form-block .x-spinner .p-button-icon {
+        font-size: 80%;
+        width: 50%;
+        height: 50%;
+    }
+
+    .form-block .x-spinner.p-inputnumber .p-inputnumber-button-group {
+        width: 10%;
+    }
+}
