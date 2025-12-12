@@ -29,3 +29,14 @@
     margin: 15px 0;
     padding: 0;
 }
+
+.error-block {
+    margin-top: 15px;
+}
+
+.p-message.p-message-error {
+    background: #ffebee !important;
+    border: 1px solid #ff0059 !important;
+    color: #ff0059 !important;
+    border-radius: 4px;
+}

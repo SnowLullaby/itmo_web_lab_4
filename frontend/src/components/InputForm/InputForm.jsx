@@ -2,9 +2,12 @@ import { Button } from 'primereact/button';
 import './InputForm.css';
 import {Suspense} from "react";
 
-function InputForm({ children, submitLabel = 'Отправить' }) {
+function InputForm({ children, submitLabel = 'Отправить', onSubmit }) {
     return (
-        <form className="form-cell">
+        <form className="form-cell" onSubmit={(e) => {
+            e.preventDefault();
+            if (onSubmit) onSubmit(e);
+        }}>
             {children}
             <div className="form-block">
                 <Suspense fallback={<div style={{ height: '50px', width: '100%', backgroundColor: '#a341a1', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white' }}>Загрузка...</div>}>
