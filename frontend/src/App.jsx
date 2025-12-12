@@ -1,16 +1,24 @@
-import React from 'react';
-import { Routes, Route, BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage/LoginPage';
 import MainPage from './pages/MainPage/MainPage';
-import './App.css';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
     return (
-        <Router>
+        <Provider store={store}>
             <Routes>
-                <Route path="/main" element={<MainPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/main" element={
+                    <ProtectedRoute>
+                        <MainPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
-        </Router>
+        </Provider>
     );
 }
 
-export default App
+export default App;
