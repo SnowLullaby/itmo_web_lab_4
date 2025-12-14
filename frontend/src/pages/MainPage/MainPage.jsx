@@ -33,7 +33,7 @@ function MainPage() {
         try {
             const res = await fetch(
                 //"http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
-                "http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
+                "http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
                 { headers: authHeaders }
             );
 
@@ -75,7 +75,7 @@ function MainPage() {
 
         try {
             //const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points', {
-            const res = await fetch('http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points', {
+            const res = await fetch('http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders,},
                 body: JSON.stringify(payload)
@@ -133,7 +133,7 @@ function MainPage() {
 
         const res = await fetch(
             //"http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
-            "http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
+            "http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json", ...authHeaders },
@@ -182,7 +182,7 @@ function MainPage() {
         try {
             const res = await fetch(
                 //"http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
-                "http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
+                "http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/points",
                 { method: "DELETE", headers: authHeaders }
             );
 

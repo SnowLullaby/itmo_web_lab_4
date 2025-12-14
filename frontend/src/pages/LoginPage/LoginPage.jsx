@@ -48,7 +48,7 @@ function LoginPage() {
 
         try {
             //const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/register', {
-            const res = await fetch('http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/register', {
+            const res = await fetch('http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -73,7 +73,7 @@ function LoginPage() {
 
         try {
             //const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
-            const res = await fetch('http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
+            const res = await fetch('http://localhost:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
