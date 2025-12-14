@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 public class AreaCheckService {
 
     public boolean checkHit(double x, double y, double z, double r) {
+        boolean zArea = - r / 4 <= z && z <= r / 4;
         double firstAreaA = Math.abs(x) / (r / 7) - 3;
         double firstSecondAreaA = Math.abs(y / (r / 7) + (double) 3 / 7 * Math.sqrt(33));
         double firstSecondAreaB = Math.pow((y / (r / 7)) / 3, 2);
         double firstSecondAreaC = Math.sqrt(Math.abs(firstSecondAreaA) / firstSecondAreaA);
+
         boolean firstArea = (y / (r / 7)) >= 0 && Math.pow(x / r, 2)
                 * Math.sqrt(Math.abs(firstAreaA) / (firstAreaA))
                 + firstSecondAreaB
@@ -17,13 +19,13 @@ public class AreaCheckService {
                 - 1 <= 0;
 
         double secondAreaA = Math.abs(x) / (r / 7) - 4;
-        boolean secondArea = (y / (r / 7)) < 0 && Math.pow(x / r, 2)
+        boolean secondArea = (y / (r / 7)) <= 0 && Math.pow(x / r, 2)
                 * Math.sqrt(Math.abs(secondAreaA) / (secondAreaA))
                 + firstSecondAreaB
                 * firstSecondAreaC
                 - 1 <= 0;
 
-        boolean thirdArea = (y / (r / 7)) < 0 && Math.abs((x / (r / 7)) / 2)
+        boolean thirdArea = (y / (r / 7)) <= 0 && Math.abs((x / (r / 7)) / 2)
                 - (3 * Math.sqrt(33) - 7) * Math.pow((x / (r / 7)), 2) / 112
                 - 3 + Math.sqrt(1 - Math.pow(Math.abs(Math.abs(x) / (r / 7) - 2) - 1, 2))
                 - y / (r / 7) <= 0;
@@ -47,7 +49,7 @@ public class AreaCheckService {
                 - 6 * Math.sqrt(10) / 14
                 * Math.sqrt(4 - Math.pow(seventhAreaA, 2)) >= y / (r / 7);
 
-        return firstArea || secondArea || thirdArea
-                || fourthArea || fifthArea || sixthArea || seventhArea;
+        return zArea && (firstArea || secondArea || thirdArea
+                || fourthArea || fifthArea || sixthArea || seventhArea);
     }
 }

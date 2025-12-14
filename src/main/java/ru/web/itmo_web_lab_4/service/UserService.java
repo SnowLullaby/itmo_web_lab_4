@@ -1,4 +1,3 @@
-// src/main/java/ru/web/itmo_web_lab_4/service/UserService.java
 package ru.web.itmo_web_lab_4.service;
 
 import lombok.RequiredArgsConstructor;

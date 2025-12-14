@@ -1,315 +1,346 @@
-import {useEffect, useState} from 'react';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import './GraphCanvas.css';
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import "./GraphCanvas.css";
 
-function GraphCanvas({ r, points = [] }) {
+function GraphCanvas({ r, points = [], onPointClick }) {
+    const canvasRef = useRef(null);
+    const sceneRef = useRef(null);
+    const cameraRef = useRef(null);
+    const rendererRef = useRef(null);
+    const controlsRef = useRef(null);
+    const mouseRef = useRef(new THREE.Vector2());
+    const modelRef = useRef(null);
+    const planeYZRef = useRef(null);
+    const planeXZRef = useRef(null);
+    const planeXYRef = useRef(null);
+    const animationFrameIdRef = useRef(null);
+
+    const onPointClickRef = useRef(onPointClick);
     useEffect(() => {
-        let scene, camera, renderer, mouse, planeYZ, planeXZ, planeXY, controls;
-        const canvas = document.getElementById('graphCanvas');
-        let currentR = r;
-        let model;
-        let animationFrameId = null;
+        onPointClickRef.current = onPointClick;
+    }, [onPointClick]);
 
-        function initThreeJS() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(90, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-            renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-            renderer.setClearColor(0xffffff, 0);
+    const getCanvasData = (event) => {
+        const canvas = canvasRef.current;
+        const camera = cameraRef.current;
+        if (!canvas || !camera) return null;
 
-            mouse = new THREE.Vector2();
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        const width = canvas.offsetWidth;
+        const height = canvas.offsetHeight;
 
-            camera.position.set(1.5, 2, 8);
-            camera.lookAt(0, 0, 0);
+        const mouse = mouseRef.current;
+        mouse.x = (clickX / width) * 2 - 1;
+        mouse.y = -(clickY / height) * 2 + 1;
 
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.1;
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
 
-            const planeSize = 20;
-            const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
-            const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+        const model = modelRef.current;
+        const planeYZ = planeYZRef.current;
+        const planeXZ = planeXZRef.current;
+        const planeXY = planeXYRef.current;
 
-            planeYZ = new THREE.Mesh(planeGeometry, planeMaterial);
-            planeYZ.rotation.y = Math.PI / 2;
-            scene.add(planeYZ);
+        const meshes = [];
+        if (model) meshes.push(model);
+        if (planeYZ) meshes.push(planeYZ);
+        if (planeXZ) meshes.push(planeXZ);
+        if (planeXY) meshes.push(planeXY);
 
-            planeXZ = new THREE.Mesh(planeGeometry, planeMaterial);
-            planeXZ.rotation.x = Math.PI / 2;
-            scene.add(planeXZ);
+        const intersects = raycaster.intersectObjects(meshes, true);
+        if (!intersects.length) return null;
 
-            planeXY = new THREE.Mesh(planeGeometry, planeMaterial);
-            scene.add(planeXY);
+        const p = intersects[0].point;
+        return {
+            x: Number(p.x.toFixed(4)),
+            y: Number(p.y.toFixed(4)),
+            z: Number(p.z.toFixed(4)),
+        };
+    };
 
-            drawAxesAndLabels();
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-            const loader = new GLTFLoader();
-            loader.load('/buttman2.glb', (gltf) => {
-                model = gltf.scene;
+        // scene/camera/renderer
+        const scene = new THREE.Scene();
+        sceneRef.current = scene;
+
+        const camera = new THREE.PerspectiveCamera(
+            80,
+            canvas.offsetWidth / canvas.offsetHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(1.5, 2, 8);
+        camera.lookAt(0, 0, 0);
+        cameraRef.current = camera;
+
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+        renderer.setClearColor(0xffffff, 0);
+        rendererRef.current = renderer;
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controlsRef.current = controls;
+
+        // invisible planes for raycasting
+        const planeSize = 20;
+        const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
+        const planeMaterial = new THREE.MeshBasicMaterial({ visible: false });
+
+        const planeYZ = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeYZ.rotation.y = Math.PI / 2;
+        scene.add(planeYZ);
+        planeYZRef.current = planeYZ;
+
+        const planeXZ = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeXZ.rotation.x = Math.PI / 2;
+        scene.add(planeXZ);
+        planeXZRef.current = planeXZ;
+
+        const planeXY = new THREE.Mesh(planeGeometry, planeMaterial);
+        scene.add(planeXY);
+        planeXYRef.current = planeXY;
+
+
+        const drawAxesAndLabels = () => {
+            const material = new THREE.LineBasicMaterial({ color: 0x2d4057 });
+
+            // x axis
+            let pts = [new THREE.Vector3(-6, 0, 0), new THREE.Vector3(6, 0, 0)];
+            let geometry = new THREE.BufferGeometry().setFromPoints(pts);
+            scene.add(new THREE.Line(geometry, material));
+
+            geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(5.8, 0, -0.2),
+                new THREE.Vector3(6, 0, 0),
+                new THREE.Vector3(5.8, 0, 0.2),
+            ]);
+            scene.add(new THREE.Line(geometry, material));
+
+            // y axis
+            pts = [new THREE.Vector3(0, -6, 0), new THREE.Vector3(0, 6, 0)];
+            geometry = new THREE.BufferGeometry().setFromPoints(pts);
+            scene.add(new THREE.Line(geometry, material));
+
+            geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 5.8, -0.2),
+                new THREE.Vector3(0, 6, 0),
+                new THREE.Vector3(0, 5.8, 0.2),
+            ]);
+            scene.add(new THREE.Line(geometry, material));
+
+            // z axis
+            pts = [new THREE.Vector3(0, 0, -6), new THREE.Vector3(0, 0, 6)];
+            geometry = new THREE.BufferGeometry().setFromPoints(pts);
+            scene.add(new THREE.Line(geometry, material));
+
+            geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-0.2, 0, 5.8),
+                new THREE.Vector3(0, 0, 6),
+                new THREE.Vector3(0.2, 0, 5.8),
+            ]);
+            scene.add(new THREE.Line(geometry, material));
+
+            // ticks
+            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach((val) => {
+                geometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(val, -0.1, 0),
+                    new THREE.Vector3(val, 0.1, 0),
+                ]);
+                scene.add(new THREE.Line(geometry, material));
+
+                geometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(-0.1, val, 0),
+                    new THREE.Vector3(0.1, val, 0),
+                ]);
+                scene.add(new THREE.Line(geometry, material));
+
+                geometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, -0.1, val),
+                    new THREE.Vector3(0, 0.1, val),
+                ]);
+                scene.add(new THREE.Line(geometry, material));
+            });
+
+            // zero sphere
+            const zeroSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0x2d4057 })
+            );
+            zeroSphere.position.set(0, 0, 0);
+            scene.add(zeroSphere);
+
+            // label sprites
+            const createTextSprite = (text) => {
+                const c = document.createElement("canvas");
+                const ctx = c.getContext("2d");
+                c.width = 256;
+                c.height = 256;
+
+                ctx.clearRect(0, 0, c.width, c.height);
+                ctx.font = "96px Helvetica";
+                ctx.fillStyle = "#2d4057";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(text, c.width / 2, c.height / 2);
+
+                const texture = new THREE.CanvasTexture(c);
+                const sprite = new THREE.Sprite(
+                    new THREE.SpriteMaterial({
+                        map: texture,
+                        transparent: true,
+                        alphaTest: 0.5,
+                        depthTest: false,
+                        depthWrite: false,
+                    })
+                );
+                sprite.scale.set(1, 1, 1);
+                return sprite;
+            };
+
+            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach((x) => {
+                const s = createTextSprite(String(x));
+                s.position.set(x, -0.3, 0);
+                scene.add(s);
+            });
+
+            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach((y) => {
+                const s = createTextSprite(String(y));
+                s.position.set(0.3, y, 0);
+                scene.add(s);
+            });
+
+            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach((zv) => {
+                const s = createTextSprite(String(zv));
+                s.position.set(0, -0.3, zv);
+                scene.add(s);
+            });
+
+            const zero = createTextSprite("0");
+            zero.position.set(0.3, -0.3, 0);
+            scene.add(zero);
+        };
+
+        drawAxesAndLabels();
+
+        const loader = new GLTFLoader();
+        loader.load(
+            "/buttman2.glb",
+            (gltf) => {
+                const model = gltf.scene;
+                modelRef.current = model;
 
                 const shapeMaterial = new THREE.MeshBasicMaterial({
                     color: 0xa341a1,
                     opacity: 0.5,
                     transparent: true,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
                 });
 
                 model.traverse((child) => {
-                    if (child.isMesh) {
-                        child.material = shapeMaterial;
-                    }
+                    if (child.isMesh) child.material = shapeMaterial;
                 });
 
                 model.rotation.x = -Math.PI / 2;
 
-                const scaleFactor = 1 / 2 * currentR;
-                model.position.set(0, 0, currentR / 4);
+                const scaleFactor = (1 / 2) * Number(r);
+                model.position.set(0, 0, Number(r) / 4);
                 model.scale.set(scaleFactor, scaleFactor, scaleFactor);
-
                 scene.add(model);
-            }, undefined, (error) => {
-                console.error('Ошибка загрузки GLB:', error);
-            });
+            },
+            undefined,
+            (error) => console.error("Ошибка загрузки GLB:", error)
+        );
 
-            drawGraph(currentR);
-
-            animate();
-        }
-
-        function animate() {
-            animationFrameId = requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        function drawAxesAndLabels() {
-            const material = new THREE.LineBasicMaterial({ color: 0x2d4057 });
-
-            // ось x + стрелки
-            let points = [new THREE.Vector3(-6,0, 0), new THREE.Vector3(6, 0, 0)];
-            let geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const xAxis = new THREE.Line(geometry, material);
-            xAxis.renderOrder = 5;
-            scene.add(xAxis);
-
-            geometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(5.8, 0, -0.2),
-                new THREE.Vector3(6, 0, 0),
-                new THREE.Vector3(5.8, 0, 0.2)
-            ]);
-            const xArrowPos = new THREE.Line(geometry, material);
-            xArrowPos.renderOrder = 5;
-            scene.add(xArrowPos);
-
-            // ось y + стрелки
-            points = [new THREE.Vector3(0, -6, 0), new THREE.Vector3(0, 6, 0)];
-            geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const yAxis = new THREE.Line(geometry, material);
-            yAxis.renderOrder = 5;
-            scene.add(yAxis);
-
-            geometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(0, 5.8, -0.2),
-                new THREE.Vector3(0, 6, 0),
-                new THREE.Vector3(0, 5.8, 0.2)
-            ]);
-            const yArrowPos = new THREE.Line(geometry, material);
-            yArrowPos.renderOrder = 5;
-            scene.add(yArrowPos);
-
-            // ось z + стрелки
-            points = [new THREE.Vector3(0, 0, -6), new THREE.Vector3(0, 0, 6)];
-            geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const zAxis = new THREE.Line(geometry, material);
-            zAxis.renderOrder = 5;
-            scene.add(zAxis);
-
-            geometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(-0.2, 0, 5.8),
-                new THREE.Vector3(0, 0, 6),
-                new THREE.Vector3(0.2, 0, 5.8)
-            ]);
-            const zArrowPos = new THREE.Line(geometry, material);
-            zArrowPos.renderOrder = 5;
-            scene.add(zArrowPos);
-
-            // ticks для меток
-            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach(val => {
-                geometry = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(val, -0.1, 0),
-                    new THREE.Vector3(val, 0.1, 0)
-                ]);
-                const xTick = new THREE.Line(geometry, material);
-                xTick.renderOrder = 5;
-                scene.add(xTick);
-
-                geometry = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(-0.1, val, 0),
-                    new THREE.Vector3(0.1, val, 0)
-                ]);
-                const yTick = new THREE.Line(geometry, material);
-                yTick.renderOrder = 5;
-                scene.add(yTick);
-
-                geometry = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(0, -0.1, val),
-                    new THREE.Vector3(0, 0.1, val)
-                ]);
-                const zTick = new THREE.Line(geometry, material);
-                zTick.renderOrder = 5;
-                scene.add(zTick);
-            });
-
-            // сфера для 0
-            const zeroSphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
-            const zeroSphereMaterial = new THREE.MeshBasicMaterial({ color: 0x2d4057 });
-            const zeroSphere = new THREE.Mesh(zeroSphereGeometry, zeroSphereMaterial);
-            zeroSphere.position.set(0, 0, 0);
-            zeroSphere.renderOrder = 5;
-            scene.add(zeroSphere);
-
-            // текстуры меток
-            function createTextSprite(text) {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 256;
-
-                context.clearRect(0, 0, canvas.width, canvas.height);
-
-                context.font = '96px Helvetica';
-                context.fillStyle = '#2d4057';
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
-                context.fillText(text, canvas.width / 2, canvas.height / 2);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({
-                    map: texture,
-                    transparent: true,
-                    alphaTest: 0.5,
-                    depthTest: false,
-                    depthWrite: false
-                });
-                const sprite = new THREE.Sprite(spriteMaterial);
-                sprite.scale.set(1, 1, 1);
-                sprite.renderOrder = 10;
-                return sprite;
-            }
-
-            // метки
-            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach(x => {
-                const sprite = createTextSprite(x.toString());
-                sprite.position.set(x, -0.3, 0);
-                scene.add(sprite);
-            });
-
-            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach(y => {
-                const sprite = createTextSprite(y.toString());
-                sprite.position.set(0.3, y, 0);
-                scene.add(sprite);
-            });
-
-            [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].forEach(z => {
-                const sprite = createTextSprite(z.toString());
-                sprite.position.set(0, -0.3, z);
-                scene.add(sprite);
-            });
-
-            const zeroSprite = createTextSprite('0');
-            zeroSprite.position.set(0.3, -0.3, 0);
-            scene.add(zeroSprite);
-        }
-
-        function drawGraph() {
-            drawPointsFromSession();
-        }
-
-        function getCanvasData(event) {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const clickY = event.clientY - rect.top;
-            const width = canvas.offsetWidth;
-            const height = canvas.offsetHeight;
-
-            mouse.x = (clickX / width) * 2 - 1;
-            mouse.y = -(clickY / height) * 2 + 1;
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-
-            const meshes = [model || planeYZ, planeXZ, planeXY];
-            let intersects = raycaster.intersectObjects(meshes, true);
-
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
-                return {
-                    x: point.x.toFixed(4),
-                    y: point.y.toFixed(4),
-                    z: point.z.toFixed(4)
-                };
-            }
-            return null;
-        }
-
-        function handleCanvasClick(event) {
+        const handleCanvasDblClick = (event) => {
             const data = getCanvasData(event);
             if (!data) return;
+            onPointClickRef.current?.(data);
+        };
 
-            document.getElementById('graphForm:graphX').value = data.x;
-            document.getElementById('graphForm:graphY').value = data.y;
-            document.getElementById('graphForm:graphZ').value = data.z;
-            document.getElementById('graphForm:graphR').value = currentR;
-            document.getElementById('graphForm:graphSubmit').dispatchEvent(new Event('click'));
-        }
+        canvas.addEventListener("dblclick", handleCanvasDblClick);
 
-        function drawPointsFromSession() {
-            const oldGroup = scene.getObjectByName('sessionPoints');
-            if (oldGroup) {
-                scene.remove(oldGroup);
-            }
-
-            if (points.length === 0) return;
-
-            const pointsGroup = new THREE.Group();
-            pointsGroup.name = 'sessionPoints';
-
-            points.forEach((point, index) => {
-                const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-                const material = new THREE.MeshBasicMaterial({
-                    color: index === 0
-                        ? (point.hit ? 0x00805a : 0xff0059)
-                        : 0x656570
-                });
-                const sphere = new THREE.Mesh(geometry, material);
-                sphere.position.set(point.x, point.y, point.z);
-                pointsGroup.add(sphere);
-            });
-
-            scene.add(pointsGroup);
-        }
-
-        initThreeJS();
-        canvas.addEventListener('dblclick', handleCanvasClick);
+        const animate = () => {
+            animationFrameIdRef.current = requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        };
+        animate();
 
         return () => {
-            canvas.removeEventListener('click', handleCanvasClick);
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            canvas.removeEventListener("dblclick", handleCanvasDblClick);
+
+            if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
+
             controls.dispose();
             renderer.dispose();
-            scene.traverse((object) => {
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) object.material.dispose();
+
+            scene.traverse((obj) => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
             });
-            if (model) scene.remove(model);
+
+            sceneRef.current = null;
+            cameraRef.current = null;
+            rendererRef.current = null;
+            controlsRef.current = null;
+            modelRef.current = null;
         };
-    }, [r, points]);
+    }, []);
+
+    useEffect(() => {
+        const model = modelRef.current;
+        if (!model) return;
+
+        const currentR = Number(r);
+        if (!Number.isFinite(currentR) || currentR <= 0) return;
+
+        const scaleFactor = (1 / 2) * currentR;
+        model.position.set(0, 0, currentR / 4);
+        model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    }, [r]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
+        if (!scene) return;
+
+        const oldGroup = scene.getObjectByName("sessionPoints");
+        if (oldGroup) scene.remove(oldGroup);
+
+        if (!points || points.length === 0) return;
+
+        const group = new THREE.Group();
+        group.name = "sessionPoints";
+
+        points.forEach((p, index) => {
+            const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: index === 0 ? (p.hit ? 0x00805a : 0xff0059) : 0x656570,
+            });
+
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(Number(p.x), Number(p.y), Number(p.z));
+            group.add(sphere);
+        });
+
+        scene.add(group);
+    }, [points]);
 
     return (
         <div className="graph-cell">
-            <canvas id="graphCanvas" width="500" height="500"></canvas>
+            <canvas ref={canvasRef} id="graphCanvas" width="600" height="600" />
         </div>
     );
 }

@@ -7,6 +7,7 @@ import InputForm from '../../components/InputForm/InputForm';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import Header from '../../components/Header/Header';
+import { Button } from 'primereact/button';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -17,6 +18,7 @@ function LoginPage() {
     const [serverError, setServerError] = useState('');
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [successMessage, setSuccessMessage] = useState('');
 
     const validate = () => {
         let valid = true;
@@ -34,6 +36,34 @@ function LoginPage() {
     const clearErrors = () => {
         setUsernameError('');
         setPasswordError('');
+        setSuccessMessage('');
+    };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setServerError('');
+        if (!validate()) return;
+
+        const body = { username: username.trim(), password };
+
+        try {
+            //const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/register', {
+            const res = await fetch('http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.message || 'Пользователь с таким именем уже существует');
+            }
+
+            setSuccessMessage('Регистрация успешна! Теперь войдите.');
+            setPassword('');
+        } catch (error) {
+            setServerError(error.message);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -42,7 +72,8 @@ function LoginPage() {
         if (!validate()) return;
 
         try {
-            const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
+            //const res = await fetch('http://localhost:8080/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
+            const res = await fetch('http://127.0.0.1:28002/itmo_web_lab_4-0.0.1-SNAPSHOT-plain/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -99,6 +130,18 @@ function LoginPage() {
                             <Message severity="error" text={serverError}/>
                         </div>
                     )}
+                    {successMessage && (
+                        <div className="form-block">
+                            <Message severity="success" text={successMessage}/>
+                        </div>
+                    )}
+                    <div className="form-block register-block">
+                        <Button
+                            label="Зарегистрироваться"
+                            onClick={handleRegister}
+                            className="ui-button"
+                        />
+                    </div>
                 </InputForm>
             </div>
         </div>

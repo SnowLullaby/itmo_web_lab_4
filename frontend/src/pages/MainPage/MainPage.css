@@ -40,3 +40,39 @@
     color: #ff0059 !important;
     border-radius: 4px;
 }
+
+.header.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 15px 20px 15px 20px;
+}
+
+.username-display {
+    font-size: 22px;
+    font-weight: normal;
+    color: #2d4057;
+    white-space: normal;
+    word-break: break-word;
+    max-width: 80%;
+    flex: 1;
+    text-align: left;
+}
+
+.logout-button {
+    width: auto !important;
+    min-width: 100px;
+}
+
+@media (max-width: 812px) {
+    .username-display {
+        max-width: 90%;
+    }
+    .logout-button {
+        width: auto !important;
+        min-width: 70px;
+    }
+}
